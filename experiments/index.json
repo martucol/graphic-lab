@@ -1,2 +1,4 @@
 [{"slug":"001-my-first-sketch","title":"my first sketch","date":"2026-02-13","tags":[],"libs":[]}
-,{"slug":"002-brush-strokes","title":"brush strokes","date":"2026-02-13","tags":[],"libs":["p5.blend.js","p5.brush.js","p5.palette.min.js","p5.riso.js"]}]
+,{"slug":"002-brush-strokes","title":"brush strokes","date":"2026-02-13","tags":[],"libs":["p5.blend.js","p5.brush.js","p5.palette.min.js","p5.riso.js"]}
+,{"slug":"003-brush-things","title":"brush things","date":"2026-02-13","tags":[],"libs":["p5.blend.js","p5.brush.js","p5.palette.min.js","p5.riso.js"]}
+,{"slug":"004-kaleidophone","title":"kaleidophone","date":"2026-02-13","tags":[],"libs":["p5.blend.js","p5.brush.js","p5.palette.min.js","p5.riso.js"]}]

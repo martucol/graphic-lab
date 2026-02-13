@@ -1,6 +1,6 @@
 {
   "title": "brush strokes",
   "date": "2026-02-13",
-  "tags": [],
+  "tags": ["brush"],
   "libs": ["p5.blend.js","p5.brush.js","p5.palette.min.js","p5.riso.js"]
 }

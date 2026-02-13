@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaleidophone Simulator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0c;
+    --surface: #111114;
+    --surface2: #18181c;
+    --border: #2a2a30;
+    --text: #e8e6e3;
+    --text-dim: #7a7878;
+    --accent: #c4a882;
+    --accent-dim: #8a7560;
+    --glow: rgba(196, 168, 130, 0.08);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+  }
+
+  #canvas-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  #canvas-wrap canvas {
+    border-radius: 4px;
+  }
+
+  .panel {
+    width: 320px;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .panel::-webkit-scrollbar { width: 4px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .panel-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+
+  .panel-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .section-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-dim);
+    margin-top: 16px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .control-row label {
+    font-size: 12px;
+    color: var(--text-dim);
+    min-width: 90px;
+  }
+
+  .control-row .value-display {
+    font-size: 12px;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    margin: 0 10px;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+    transition: transform 0.15s ease;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    cursor: pointer;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .btn {
+    flex: 1;
+    padding: 10px 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+    background: var(--border);
+    border-color: var(--accent-dim);
+  }
+
+  .btn.primary {
+    background: var(--accent-dim);
+    border-color: var(--accent);
+    color: var(--bg);
+  }
+
+  .btn.primary:hover {
+    background: var(--accent);
+  }
+
+  .preset-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .preset-btn {
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+  }
+
+  .preset-btn:hover {
+    border-color: var(--accent-dim);
+    color: var(--text);
+    background: var(--glow);
+  }
+
+  .equations {
+    margin-top: 12px;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 10px;
+    line-height: 1.8;
+    color: var(--text-dim);
+  }
+
+  .equations .eq-var { color: var(--accent); }
+
+  .color-options {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    margin-bottom: 10px;
+  }
+
+  .color-swatch {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .color-swatch.active {
+    border-color: var(--text);
+    transform: scale(1.15);
+  }
+
+  .color-swatch:hover {
+    transform: scale(1.1);
+  }
+
+  .info-line {
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 800px) {
+    body { flex-direction: column; }
+    .panel {
+      width: 100%;
+      height: auto;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      max-height: 45vh;
+    }
+    #canvas-wrap { min-height: 55vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="canvas-wrap"></div>
+
+<div class="panel">
+  <div class="panel-title">Kaleidophone</div>
+  <div class="panel-subtitle">Light patterns from vibrating rods</div>
+
+  <!-- Eccentricity -->
+  <div class="section-label">Eccentricity</div>
+  <div class="control-row">
+    <label>ε 1</label>
+    <input type="range" id="eccentricity1" min="0" max="1" step="0.1" value="0">
+    <span class="value-display" id="eccentricity1-val">0.0</span>
+</div>
+<div class="control-row">
+    <label>ε 2</label>
+    <input type="range" id="eccentricity2" min="0" max="1" step="0.1" value="1">
+    <span class="value-display" id="eccentricity2-val">1.0</span>
+</div>
+
+  <!-- Frequency -->
+  <div class="section-label">Frequency</div>
+  <div class="control-row">
+    <label>ratio</label>
+    <input type="range" id="ratio" min="0.5" max="8" step="0.5" value="2.0">
+    <span class="value-display" id="ratio-val">2.000</span>
+  </div>
+  <div class="control-row">
+    <label>phase φ</label>
+    <input type="range" id="phase" min="0" max="6.2832" step="0.01" value="1.57">
+    <span class="value-display" id="phase-val">1.57</span>
+  </div>
+
+  <!-- Amplitude -->
+  <div class="section-label">Amplitude</div>
+  <div class="control-row">
+    <label>axis 1a</label>
+    <input type="range" id="axis1a" min="0.5" max="1.5" step="0.1" value="1.0">
+    <span class="value-display" id="axis1a-val">1.00</span>
+  </div>
+  <div class="control-row">
+    <label>axis 2a</label>
+    <input type="range" id="axis2a" min="0.5" max="1.5" step="0.1" value="1.0">
+    <span class="value-display" id="axis2a-val">1.00</span>
+  </div>
+
+  <!-- Damping -->
+  <div class="section-label">Damping</div>
+  <div class="control-row">
+    <label>decay</label>
+    <input type="range" id="damping" min="0" max="0.01" step="0.0001" value="0.001">
+    <span class="value-display" id="damping-val">0.0010</span>
+  </div>
+
+  <!-- Drawing -->
+  <div class="section-label">Drawing</div>
+  <div class="control-row">
+    <label>resolution</label>
+    <input type="range" id="resolution" min="10" max="5000" step="10" value="30000">
+    <span class="value-display" id="resolution-val">30000</span>
+  </div>
+  <div class="control-row">
+    <label>stroke</label>
+    <input type="range" id="strokeW" min="0.3" max="3" step="0.1" value="0.8">
+    <span class="value-display" id="strokeW-val">0.8</span>
+  </div>
+
+  <div class="section-label">Line Color</div>
+  <div class="color-options" id="color-options"></div>
+
+  <!-- Presets -->
+  <div class="section-label">Presets</div>
+  <div class="preset-grid">
+    <button class="preset-btn" onclick="applyPreset('lissajous')">Lissajous ε=1</button>
+    <button class="preset-btn" onclick="applyPreset('rotary')">Rotary ε=0</button>
+    <button class="preset-btn" onclick="applyPreset('flower')">Flower</button>
+    <button class="preset-btn" onclick="applyPreset('star')">Star</button>
+    <button class="preset-btn" onclick="applyPreset('spiral')">Spiral</button>
+    <button class="preset-btn" onclick="applyPreset('complex')">Complex</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn primary" onclick="redraw_pattern()">Redraw</button>
+    <button class="btn" onclick="randomize()">Random</button>
+    <button class="btn" onclick="savePNG()">Save PNG</button>
+  </div>
+
+  <div class="equations">
+    <span class="eq-var">x</span> = (1−d)<sup>n</sup> · (a₁ · cos(θ) + a₂ · cos(r·θ + φ))<br>
+    <span class="eq-var">y</span> = (1−d)<sup>n</sup> · (b₁ · sin(θ) + b₂ · sin(r·θ − φ))<br><br>
+    Where <span class="eq-var">b₁</span> = a₁·(1−ε), <span class="eq-var">b₂</span> = a₂·(1−ε)<br>
+    <span class="eq-var">ε = 0</span> → circular (rotary) · <span class="eq-var">ε = 1</span> → linear (Lissajous)
+  </div>
+
+  <div class="info-line">
+    Based on Wheatstone's kaleidophone (1827). Eccentricity interpolates between rotary harmonograph (ε=0) and linear/Lissajous figures (ε=1).
+  </div>
+</div>
+
+<script>
+const palettes = [
+  { name: 'Brass',    colors: ['#c4a882', '#d4bc9a', '#a08060'] },
+  { name: 'Cyan',     colors: ['#5ec4b6', '#7de0d4', '#3a998d'] },
+  { name: 'Rose',     colors: ['#d4728c', '#e8a0b2', '#b85070'] },
+  { name: 'Ivory',    colors: ['#e8e6e3', '#d0cec8', '#bab8b0'] },
+  { name: 'Violet',   colors: ['#9b8ec4', '#b8aed8', '#7a6ea8'] },
+  { name: 'Ember',    colors: ['#d48a4c', '#e8a868', '#b87040'] },
+];
+
+let currentPalette = 0;
+let pg; // offscreen graphics buffer
+let canvasSize;
+
+// Build color swatches
+const colorContainer = document.getElementById('color-options');
+palettes.forEach((p, i) => {
+  const swatch = document.createElement('div');
+  swatch.className = 'color-swatch' + (i === 0 ? ' active' : '');
+  swatch.style.background = p.colors[0];
+  swatch.title = p.name;
+  swatch.onclick = () => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+    swatch.classList.add('active');
+    currentPalette = i;
+    redraw_pattern();
+  };
+  colorContainer.appendChild(swatch);
+});
+
+function getVal(id) { return parseFloat(document.getElementById(id).value); }
+
+function updateDisplay(id) {
+  const el = document.getElementById(id);
+  const valEl = document.getElementById(id + '-val');
+  const v = parseFloat(el.value);
+  if (id === 'damping') valEl.textContent = v.toFixed(4);
+  else if (id === 'ratio') valEl.textContent = v.toFixed(3);
+  else if (id === 'resolution') valEl.textContent = Math.round(v);
+  else valEl.textContent = v.toFixed(2);
+}
+
+// Attach live update listeners
+document.querySelectorAll('input[type="range"]').forEach(input => {
+  input.addEventListener('input', () => updateDisplay(input.id));
+  // auto-redraw on release
+  input.addEventListener('change', () => redraw_pattern());
+});
+
+function setup() {
+  const wrap = document.getElementById('canvas-wrap');
+  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
+  const cnv = createCanvas(canvasSize, canvasSize);
+  cnv.parent('canvas-wrap');
+  pixelDensity(2);
+  pg = createGraphics(canvasSize, canvasSize);
+  pg.pixelDensity(2);
+  redraw_pattern();
+  noLoop();
+}
+
+function windowResized() {
+  const wrap = document.getElementById('canvas-wrap');
+  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
+  resizeCanvas(canvasSize, canvasSize);
+  pg.resizeCanvas(canvasSize, canvasSize);
+  redraw_pattern();
+}
+
+function redraw_pattern() {
+  const ecc1      = getVal('eccentricity1');
+  const ecc2       = getVal('eccentricity2');
+  const ratio     = getVal('ratio');
+  const phase     = getVal('phase');
+  const a1a       = getVal('axis1a');
+  const a2a       = getVal('axis2a');
+  const damping   = getVal('damping');
+  const steps     = getVal('resolution');
+  const sw        = getVal('strokeW');
+  const pal       = palettes[currentPalette].colors;
+
+  // Derive b values from eccentricity
+  // ecc=0 → b=a (circle), ecc=1 → b=0 (line)
+  const a1b = a1a * (1 - ecc1);
+const a2b = a2a * (1 - ecc2);
+
+  const s = canvasSize;
+  const scale = s * 0.38;
+
+  pg.background(10, 10, 12);
+  pg.resetMatrix();
+  pg.noFill();
+  pg.strokeWeight(sw);
+  pg.translate(s / 2, s / 2);
+
+  // Draw with gradient along the path
+  const qStep = (Math.PI * 2 * Math.max(20, ratio * 10)) / steps;
+  let prevX, prevY;
+
+  for (let i = 0; i <= steps; i++) {
+    const q = i * qStep;
+    const decay = Math.pow(1 - damping, i);
+
+    const x = decay * (a1a * Math.cos(q) + a2a * Math.cos(ratio * q + phase));
+    const y = decay * (a1b * Math.sin(q) + a2b * Math.sin(ratio * q - phase));
+
+    const sx = x * scale;
+    const sy = y * scale;
+
+    if (i > 0) {
+      // Color: blend through palette based on progress
+      const t = i / steps;
+      const alpha = Math.max(10, 255 * (1 - t * 0.4));
+      const colIdx = t * (pal.length - 1);
+      const ci = Math.floor(colIdx);
+      const cf = colIdx - ci;
+      const c1 = hexToRgb(pal[Math.min(ci, pal.length - 1)]);
+      const c2 = hexToRgb(pal[Math.min(ci + 1, pal.length - 1)]);
+      const r = c1.r + (c2.r - c1.r) * cf;
+      const g = c1.g + (c2.g - c1.g) * cf;
+      const b = c1.b + (c2.b - c1.b) * cf;
+
+      pg.stroke(r, g, b, alpha);
+      pg.line(prevX, prevY, sx, sy);
+    }
+
+    prevX = sx;
+    prevY = sy;
+  }
+
+  // Render buffer to canvas
+  image(pg, 0, 0);
+}
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+}
+
+function applyPreset(name) {
+  const presets = {
+    lissajous: { eccentricity1: 0.0, eccentricity2: 1.0, ratio: 2.0, phase: 1.57, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 3000 },
+    rotary:    { eccentricity1: 0.0, eccentricity2: 0.0, ratio: 2.0, phase: 1.57, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 3000 },
+    flower:    { eccentricity1: 0.0, eccentricity2: 0.0, ratio: 3.5, phase: 0.0, axis1a: 0.5, axis2a: 0.5, damping: 0.0, resolution: 4000 },
+    star:      { eccentricity1: 0.0, eccentricity2: 0.6, ratio: 5.0, phase: 0.78, axis1a: 1.0, axis2a: 1.2, damping: 0.0, resolution: 4000 },
+    spiral:    { eccentricity1: 0.0, eccentricity2: 0.15, ratio: 2.005, phase: 1.0, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 4000 },
+    complex:   { eccentricity1: 0.0, eccentricity2: 0.45, ratio: 3.517, phase: 2.35, axis1a: 1.1, axis2a: 0.9, damping: 0.00, resolution: 4000 },
+  };
+
+  const p = presets[name];
+  if (!p) return;
+
+  Object.keys(p).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) {
+      el.value = p[key];
+      updateDisplay(key);
+    }
+  });
+
+  redraw_pattern();
+}
+
+function randomize() {
+  const sets = {
+    eccentricity1: 0,
+    eccentricity2: Math.random(),
+    ratio: 0.5 + Math.random() * 7.5,
+    phase: Math.random() * Math.PI * 2,
+    axis1a: 0.3 + Math.random() * 1.2,
+    axis2a: 0.3 + Math.random() * 1.2,
+    damping: Math.random() * 0.005,
+    resolution: 100 + Math.floor(Math.random() * 4000),
+  };
+
+  Object.keys(sets).forEach(key => {
+    const el = document.getElementById(key);
+    if (el) {
+      el.value = sets[key];
+      updateDisplay(key);
+    }
+  });
+
+  redraw_pattern();
+}
+
+function savePNG() {
+  saveCanvas('kaleidophone', 'png');
+}
+
+// Initial display update
+document.querySelectorAll('input[type="range"]').forEach(input => updateDisplay(input.id));
+</script>
+</body>
+</html>
