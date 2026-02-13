@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>experiment</title>
+  <style>
+    :root {
+      --color-foreground: 0, 0, 255;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #fff;
+      color: rgb(var(--color-foreground));
+      font-family: monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    #topbar {
+      width: 100%;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 14px;
+    }
+    #topbar a {
+      color: rgb(var(--color-foreground));
+      text-decoration: none;
+    }
+    #topbar a:hover { text-decoration: underline; }
+    #title { flex: 1; }
+    #save-btn {
+      background: none;
+      border: 1px solid rgb(var(--color-foreground));
+      color: rgb(var(--color-foreground));
+      font-family: monospace;
+      font-size: 14px;
+      padding: 4px 10px;
+      cursor: pointer;
+    }
+    #save-btn:hover { background: rgb(var(--color-foreground)); color: #fff; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <a href="../../">← lab</a>
+    <span id="title"></span>
+    <button id="save-btn">save png</button>
+  </div>
+
+  <script>
+    window.ASSETS_PATH = '../../assets/';
+
+    function loadScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      });
+    }
+
+    (async function () {
+      const meta = await fetch('./meta.json').then(r => r.json());
+
+      document.title = meta.title || 'experiment';
+      document.getElementById('title').textContent = meta.title || '';
+
+      // load p5 from CDN
+      await loadScript('https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js');
+
+      // load libs from meta.json (including p5.sound if needed)
+      // cdn libs are loaded by URL, local libs from ../../lib/
+      if (meta.libs && meta.libs.length) {
+        for (const lib of meta.libs) {
+          const src = lib.startsWith('http') ? lib : '../../lib/' + lib;
+          await loadScript(src);
+        }
+      }
+
+      // load sketch.js — defines either:
+      //   global setup/draw (global mode) or
+      //   function sketch(p) {} (instance mode, for libs like p5.brush)
+      await loadScript('./sketch.js');
+
+      if (typeof sketch === 'function') {
+        new p5(sketch);
+      } else {
+        new p5();
+      }
+
+      document.getElementById('save-btn').addEventListener('click', () => {
+        saveCanvas();
+      });
+    })();
+  </script>
+</body>
+</html>

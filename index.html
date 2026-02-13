@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>graphic lab</title>
+  <style>
+    :root {
+      --color-foreground: 0, 0, 255;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #fff;
+      color: rgb(var(--color-foreground));
+      font-family: monospace;
+      padding: 24px;
+    }
+    h1 { font-size: 16px; font-weight: normal; margin-bottom: 24px; }
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid rgb(var(--color-foreground));
+      padding: 16px;
+      text-decoration: none;
+      color: rgb(var(--color-foreground));
+      display: block;
+    }
+    .card:hover { background: rgb(var(--color-foreground)); color: #fff; }
+    .card-number { font-size: 12px; opacity: 0.6; }
+    .card-title { margin: 4px 0; }
+    .card-date { font-size: 12px; opacity: 0.6; }
+    .card-tags { font-size: 11px; margin-top: 6px; }
+    #empty { opacity: 0.6; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <h1>graphic lab</h1>
+  <div id="grid"></div>
+  <p id="empty" hidden>no experiments yet — run ./scripts/new.sh "my first sketch"</p>
+
+  <script>
+    (async function () {
+      const experiments = await fetch('./experiments/index.json').then(r => r.json());
+      const grid = document.getElementById('grid');
+      const empty = document.getElementById('empty');
+
+      if (!experiments.length) {
+        empty.hidden = false;
+        return;
+      }
+
+      // newest first
+      const sorted = [...experiments].reverse();
+
+      for (const exp of sorted) {
+        const a = document.createElement('a');
+        a.className = 'card';
+        a.href = './experiments/' + exp.slug + '/';
+
+        const number = exp.slug.match(/^(\d+)/)?.[1] || '';
+
+        a.innerHTML =
+          '<div class="card-number">#' + number + '</div>' +
+          '<div class="card-title">' + exp.title + '</div>' +
+          '<div class="card-date">' + exp.date + '</div>' +
+          (exp.tags.length ? '<div class="card-tags">' + exp.tags.join(', ') + '</div>' : '');
+
+        grid.appendChild(a);
+      }
+    })();
+  </script>
+</body>
+</html>

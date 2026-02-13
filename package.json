@@ -1,0 +1,8 @@
+{
+  "name": "graphic-lab",
+  "private": true,
+  "scripts": {
+    "new": "bash scripts/new.sh",
+    "serve": "npx serve ."
+  }
+}
