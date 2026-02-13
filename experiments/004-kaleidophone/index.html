@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kaleidophone Simulator</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
+<script src="../../lib/p5.brush.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -376,7 +377,6 @@ const palettes = [
 ];
 
 let currentPalette = 0;
-let pg; // offscreen graphics buffer
 let canvasSize;
 
 // Build color swatches
@@ -417,52 +417,41 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
 function setup() {
   const wrap = document.getElementById('canvas-wrap');
   canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
-  const cnv = createCanvas(canvasSize, canvasSize);
+  const cnv = createCanvas(canvasSize, canvasSize, WEBGL);
   cnv.parent('canvas-wrap');
   pixelDensity(2);
-  pg = createGraphics(canvasSize, canvasSize);
-  pg.pixelDensity(2);
-  redraw_pattern();
+  brush.load();
   noLoop();
+  redraw();
 }
 
-function windowResized() {
-  const wrap = document.getElementById('canvas-wrap');
-  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
-  resizeCanvas(canvasSize, canvasSize);
-  pg.resizeCanvas(canvasSize, canvasSize);
-  redraw_pattern();
-}
-
-function redraw_pattern() {
+function draw() {
   const ecc1      = getVal('eccentricity1');
-  const ecc2       = getVal('eccentricity2');
+  const ecc2      = getVal('eccentricity2');
   const ratio     = getVal('ratio');
   const phase     = getVal('phase');
   const a1a       = getVal('axis1a');
   const a2a       = getVal('axis2a');
   const damping   = getVal('damping');
   const steps     = getVal('resolution');
-  const sw        = getVal('strokeW');
   const pal       = palettes[currentPalette].colors;
 
   // Derive b values from eccentricity
   // ecc=0 → b=a (circle), ecc=1 → b=0 (line)
   const a1b = a1a * (1 - ecc1);
-const a2b = a2a * (1 - ecc2);
+  const a2b = a2a * (1 - ecc2);
 
   const s = canvasSize;
   const scale = s * 0.38;
 
-  pg.background(10, 10, 12);
-  pg.resetMatrix();
-  pg.noFill();
-  pg.strokeWeight(sw);
-  pg.translate(s / 2, s / 2);
+  background(10, 10, 12);
 
-  // Draw with gradient along the path
+  // Use the primary color from the selected palette
+  brush.set("rotring", pal[0], 4);
+
+  // Compute all points first
   const qStep = (Math.PI * 2 * Math.max(20, ratio * 10)) / steps;
-  let prevX, prevY;
+  const points = [];
 
   for (let i = 0; i <= steps; i++) {
     const q = i * qStep;
@@ -471,32 +460,30 @@ const a2b = a2a * (1 - ecc2);
     const x = decay * (a1a * Math.cos(q) + a2a * Math.cos(ratio * q + phase));
     const y = decay * (a1b * Math.sin(q) + a2b * Math.sin(ratio * q - phase));
 
-    const sx = x * scale;
-    const sy = y * scale;
-
-    if (i > 0) {
-      // Color: blend through palette based on progress
-      const t = i / steps;
-      const alpha = Math.max(10, 255 * (1 - t * 0.4));
-      const colIdx = t * (pal.length - 1);
-      const ci = Math.floor(colIdx);
-      const cf = colIdx - ci;
-      const c1 = hexToRgb(pal[Math.min(ci, pal.length - 1)]);
-      const c2 = hexToRgb(pal[Math.min(ci + 1, pal.length - 1)]);
-      const r = c1.r + (c2.r - c1.r) * cf;
-      const g = c1.g + (c2.g - c1.g) * cf;
-      const b = c1.b + (c2.b - c1.b) * cf;
-
-      pg.stroke(r, g, b, alpha);
-      pg.line(prevX, prevY, sx, sy);
-    }
-
-    prevX = sx;
-    prevY = sy;
+    points.push({ x: x * scale, y: y * scale });
   }
 
-  // Render buffer to canvas
-  image(pg, 0, 0);
+  // Draw as brush segments — break into chunks to keep brush strokes visible
+  const chunkSize = 80;
+  for (let c = 0; c < points.length - 1; c += chunkSize) {
+    const end = Math.min(c + chunkSize + 1, points.length);
+    brush.beginShape(0.3);
+    for (let i = c; i < end; i++) {
+      brush.vertex(points[i].x, points[i].y);
+    }
+    brush.endShape();
+  }
+}
+
+function windowResized() {
+  const wrap = document.getElementById('canvas-wrap');
+  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
+  resizeCanvas(canvasSize, canvasSize);
+  redraw();
+}
+
+function redraw_pattern() {
+  redraw();
 }
 
 function hexToRgb(hex) {
