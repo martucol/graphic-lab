@@ -41,6 +41,7 @@
     position: fixed;
     font-size: 14px;
     flex-shrink: 0;
+    z-index: 1;
   }
   #topbar a {
     color: var(--text);
@@ -48,6 +49,7 @@
   }
   #topbar a:hover { text-decoration: underline; }
   #topbar span { flex: 1; }
+  #title {text-transform: uppercase;}
   #save-btn {
     background: none;
     border: 1px solid var(--border);
@@ -321,15 +323,13 @@
 
 <div id="topbar">
   <a href="../../">← lab</a>
-  <span>Kaleidophone</span>
+  <span id="title">Kaleidophone</span>
   <button id="save-btn" onclick="savePNG()">save png</button>
 </div>
 
 <div id="canvas-wrap"></div>
 
 <div class="panel">
-  <div class="panel-title">Kaleidophone</div>
-
   <!-- Eccentricity -->
   <div class="section-label">Eccentricity</div>
   <div class="control-row">
