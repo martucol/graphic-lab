@@ -326,7 +326,7 @@
   <div class="section-label">Frequency</div>
   <div class="control-row">
     <label>ratio</label>
-    <input type="range" id="ratio" min="0.0" max="8" step="0.1" value="2.0">
+    <input type="range" id="ratio" min="0.0" max="8" step="0.05" value="2.0">
     <span class="value-display" id="ratio-val">2.0</span>
   </div>
   <div class="control-row">
@@ -380,8 +380,10 @@
     <button class="preset-btn" onclick="applyPreset('flower')">Flower</button>
     <button class="preset-btn" onclick="applyPreset('star')">Star</button>
     <button class="preset-btn" onclick="applyPreset('spiral')">Spiral</button>
-    <button class="preset-btn" onclick="applyPreset('complex')">Complex</button>
-  </div>
+    <button class="preset-btn" onclick="applyPreset('toroid')">Toroid</button>
+    <button class="preset-btn" onclick="applyPreset('toroid2')">Toroid 2</button>
+  
+</div>
 
   <div class="btn-row">
     <button class="btn primary" onclick="redraw_pattern()">Redraw</button>
@@ -538,9 +540,11 @@ function applyPreset(name) {
     rotary:    { eccentricity1: 0.0, eccentricity2: 0.0, ratio: 2.0, phase: 1.57, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 3000 },
     flower:    { eccentricity1: 0.0, eccentricity2: 0.0, ratio: 3.5, phase: 0.0, axis1a: 0.5, axis2a: 0.5, damping: 0.0, resolution: 4000 },
     star:      { eccentricity1: 0.0, eccentricity2: 0.6, ratio: 5.0, phase: 0.78, axis1a: 1.0, axis2a: 1.2, damping: 0.0, resolution: 4000 },
-    spiral:    { eccentricity1: 0.0, eccentricity2: 0.15, ratio: 2.005, phase: 1.0, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 4000 },
-    complex:   { eccentricity1: 0.0, eccentricity2: 0.45, ratio: 3.517, phase: 2.35, axis1a: 1.1, axis2a: 0.9, damping: 0.00, resolution: 4000 },
-  };
+    spiral:    { eccentricity1: 0.0, eccentricity2: 0.15, ratio: 2.0, phase: 1.0, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 4000 },
+    toroid:   { eccentricity1: 0.0, eccentricity2: 1.0, ratio: 3.7, phase: 0, axis1a: 0.8, axis2a: 0.7, damping: 0.00, resolution: 5000 },
+    toroid2:   { eccentricity1: 0.0, eccentricity2: 0.5, ratio: 3.7, phase: 0, axis1a: 0.8, axis2a: 0.7, damping: 0.00, resolution: 5000 },
+ 
+};
 
   const p = presets[name];
   if (!p) return;
