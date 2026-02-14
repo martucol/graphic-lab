@@ -11,15 +11,15 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #0a0a0c;
-    --surface: #111114;
-    --surface2: #18181c;
-    --border: #2a2a30;
-    --text: #e8e6e3;
-    --text-dim: #7a7878;
-    --accent: #c4a882;
-    --accent-dim: #8a7560;
-    --glow: rgba(196, 168, 130, 0.08);
+    --bg: #fff;
+    --surface: #fff;
+    --surface2: #fff;
+    --border: blue;
+    --text: blue;
+    --text-dim: rgba(0,0,255,0.8);
+    --accent: blue;
+    --accent-dim: rgba(0,0,255,0.8);
+    --glow: rgba(0, 0, 255, 0.08);
   }
 
   body {
@@ -29,7 +29,37 @@
     height: 100vh;
     overflow: hidden;
     display: flex;
+    flex-wrap: wrap;
   }
+
+  #topbar {
+    width: 100%;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: fixed;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  #topbar a {
+    color: var(--text);
+    text-decoration: none;
+  }
+  #topbar a:hover { text-decoration: underline; }
+  #topbar span { flex: 1; }
+  #save-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  #save-btn:hover { background: var(--border); color: var(--bg); }
 
   #canvas-wrap {
     flex: 1;
@@ -44,7 +74,7 @@
   }
 
   .panel {
-    width: 320px;
+    width: 360px;
     background: var(--surface);
     border-left: 1px solid var(--border);
     height: 100vh;
@@ -59,15 +89,15 @@
   .panel::-webkit-scrollbar-track { background: transparent; }
   .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
-  .panel-title {
+  /* .panel-title {
     font-family: 'Instrument Serif', serif;
     font-size: 26px;
     letter-spacing: -0.02em;
     color: var(--accent);
     margin-bottom: 2px;
-  }
+  } */
 
-  .panel-subtitle {
+  .panel-title {
     font-size: 11px;
     color: var(--text-dim);
     letter-spacing: 0.05em;
@@ -268,11 +298,16 @@
 </head>
 <body>
 
+<div id="topbar">
+  <a href="../../">← lab</a>
+  <span>Kaleidophone</span>
+  <button id="save-btn" onclick="savePNG()">save png</button>
+</div>
+
 <div id="canvas-wrap"></div>
 
 <div class="panel">
   <div class="panel-title">Kaleidophone</div>
-  <div class="panel-subtitle">Light patterns from vibrating rods</div>
 
   <!-- Eccentricity -->
   <div class="section-label">Eccentricity</div>
@@ -291,8 +326,8 @@
   <div class="section-label">Frequency</div>
   <div class="control-row">
     <label>ratio</label>
-    <input type="range" id="ratio" min="0.5" max="8" step="0.5" value="2.0">
-    <span class="value-display" id="ratio-val">2.000</span>
+    <input type="range" id="ratio" min="0.0" max="8" step="0.1" value="2.0">
+    <span class="value-display" id="ratio-val">2.0</span>
   </div>
   <div class="control-row">
     <label>phase φ</label>
@@ -330,7 +365,7 @@
   </div>
   <div class="control-row">
     <label>stroke</label>
-    <input type="range" id="strokeW" min="0.3" max="3" step="0.1" value="0.8">
+    <input type="range" id="strokeW" min="0.3" max="10" step="0.1" value="2.0">
     <span class="value-display" id="strokeW-val">0.8</span>
   </div>
 
@@ -368,16 +403,16 @@
 
 <script>
 const palettes = [
-  { name: 'Brass',    colors: ['#c4a882', '#d4bc9a', '#a08060'] },
-  { name: 'Cyan',     colors: ['#5ec4b6', '#7de0d4', '#3a998d'] },
+  { name: 'Blue',    colors: ['#00F', '#00F', '#a08060'] },
+  { name: 'Lime',     colors: ['#aec486', '#aec486', '#aec486'] },
   { name: 'Rose',     colors: ['#d4728c', '#e8a0b2', '#b85070'] },
-  { name: 'Ivory',    colors: ['#e8e6e3', '#d0cec8', '#bab8b0'] },
+  { name: 'Blakc',    colors: ['#030301', '#030301', '#030301'] },
   { name: 'Violet',   colors: ['#9b8ec4', '#b8aed8', '#7a6ea8'] },
   { name: 'Ember',    colors: ['#d48a4c', '#e8a868', '#b87040'] },
 ];
 
 let currentPalette = 0;
-let canvasSize;
+let canvasW, canvasH, canvasScale;
 
 // Build color swatches
 const colorContainer = document.getElementById('color-options');
@@ -414,10 +449,17 @@ document.querySelectorAll('input[type="range"]').forEach(input => {
   input.addEventListener('change', () => redraw_pattern());
 });
 
-function setup() {
+function calcSize() {
   const wrap = document.getElementById('canvas-wrap');
-  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
-  const cnv = createCanvas(canvasSize, canvasSize, WEBGL);
+  const topbar = document.getElementById('topbar');
+  canvasW = wrap.clientWidth - 20;
+  canvasH = window.innerHeight - topbar.offsetHeight - 20;
+  canvasScale = Math.min(canvasW, canvasH) * 0.38;
+}
+
+function setup() {
+  calcSize();
+  const cnv = createCanvas(canvasW, canvasH, WEBGL);
   cnv.parent('canvas-wrap');
   pixelDensity(2);
   brush.load();
@@ -434,6 +476,7 @@ function draw() {
   const a2a       = getVal('axis2a');
   const damping   = getVal('damping');
   const steps     = getVal('resolution');
+  const sw        = getVal('strokeW');
   const pal       = palettes[currentPalette].colors;
 
   // Derive b values from eccentricity
@@ -441,13 +484,12 @@ function draw() {
   const a1b = a1a * (1 - ecc1);
   const a2b = a2a * (1 - ecc2);
 
-  const s = canvasSize;
-  const scale = s * 0.38;
+  const scale = canvasScale;
 
-  background(10, 10, 12);
+  background(255,255,255);
 
   // Use the primary color from the selected palette
-  brush.set("rotring", pal[0], 4);
+  brush.set("rotring", pal[0], sw);
 
   // Compute all points first
   const qStep = (Math.PI * 2 * Math.max(20, ratio * 10)) / steps;
@@ -476,9 +518,8 @@ function draw() {
 }
 
 function windowResized() {
-  const wrap = document.getElementById('canvas-wrap');
-  canvasSize = Math.min(wrap.clientWidth - 40, wrap.clientHeight - 40, 800);
-  resizeCanvas(canvasSize, canvasSize);
+  calcSize();
+  resizeCanvas(canvasW, canvasH);
   redraw();
 }
 
