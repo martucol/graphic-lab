@@ -334,13 +334,13 @@
   <div class="section-label">Eccentricity</div>
   <div class="control-row">
     <label>ε 1</label>
-    <input type="range" id="eccentricity1" min="0" max="1" step="0.005" value="0">
+    <input type="range" id="eccentricity1" min="0" max="2" step="0.005" value="0">
     <span class="value-display" id="eccentricity1-val">0.0</span>
     <button class="play-btn" onclick="toggleAnim('eccentricity1', this)">▶</button>
 </div>
 <div class="control-row">
     <label>ε 2</label>
-    <input type="range" id="eccentricity2" min="0" max="1" step="0.005" value="1">
+    <input type="range" id="eccentricity2" min="0" max="2" step="0.005" value="1">
     <span class="value-display" id="eccentricity2-val">1.0</span>
     <button class="play-btn" onclick="toggleAnim('eccentricity2', this)">▶</button>
 </div>
@@ -384,12 +384,12 @@
   <div class="section-label">Drawing</div>
   <div class="control-row">
     <label>resolution</label>
-    <input type="range" id="resolution" min="10" max="5000" step="10" value="30000">
+    <input type="range" id="resolution" min="10" max="5000" step="10" value="3000">
     <span class="value-display" id="resolution-val">30000</span>
   </div>
   <div class="control-row">
     <label>stroke</label>
-    <input type="range" id="strokeW" min="0.3" max="10" step="0.1" value="2.0">
+    <input type="range" id="strokeW" min="0.3" max="5" step="0.1" value="2.0">
     <span class="value-display" id="strokeW-val">0.8</span>
   </div>
 
@@ -463,7 +463,7 @@ function updateDisplay(id) {
   const el = document.getElementById(id);
   const valEl = document.getElementById(id + '-val');
   const v = parseFloat(el.value);
-  if (id === 'damping') valEl.textContent = v.toFixed(2);
+  if (id === 'damping') valEl.textContent = v.toFixed(4);
   else if (id === 'ratio') valEl.textContent = v.toFixed(2);
   else if (id === 'resolution') valEl.textContent = Math.round(v);
   else valEl.textContent = v.toFixed(2);
@@ -608,9 +608,9 @@ function applyPreset(name) {
     swirl:    { eccentricity1: 0.5, eccentricity2: 0.0, ratio: 9.0, phase: 0.0, axis1a: 1.0, axis2a: 0.25, damping: 0.0, resolution: 3000 },
     swirl2:    { eccentricity1: 0.5, eccentricity2: 0.0, ratio: 4.25, phase: 0.0, axis1a: 0.88, axis2a: 0.20, damping: 0.0, resolution: 3000 },
     flower:    { eccentricity1: 0.0, eccentricity2: 0.0, ratio: 3.5, phase: 0.0, axis1a: 0.5, axis2a: 0.5, damping: 0.0, resolution: 4000 },
-    star:      { eccentricity1: 0.0, eccentricity2: 0.6, ratio: 1.5, phase: 0.78, axis1a: 1.0, axis2a: 1.2, damping: 0.0, resolution: 4000 },
-    spiral:    { eccentricity1: 0.0, eccentricity2: 0.15, ratio: 2.0, phase: 1.0, axis1a: 1.0, axis2a: 1.0, damping: 0.0, resolution: 4000 },
-    toroid:   { eccentricity1: 0.0, eccentricity2: 1.0, ratio: 3.7, phase: 0, axis1a: 0.8, axis2a: 0.7, damping: 0.00, resolution: 5000 },
+    star:      { eccentricity1: 0.0, eccentricity2: 2.0, ratio: 4.0, phase: 0, axis1a: 1.25, axis2a: 0.25, damping: 0.0008, resolution: 4000 },
+    spiral:    { eccentricity1: 0.0, eccentricity2: 1.0, ratio: 1.0, phase: 1.57, axis1a: 1.0, axis2a: 1.0, damping: 0.001, resolution: 3000 },
+    toroid:   { eccentricity1: 0.0, eccentricity2: 1.0, ratio: 3.7, phase: 0, axis1a: 0.8, axis2a: 0.7, damping: 0.00, resolution: 4000 },
     toroid2:   { eccentricity1: 0.0, eccentricity2: 0.5, ratio: 3.7, phase: 0, axis1a: 0.8, axis2a: 0.7, damping: 0.00, resolution: 5000 },
  
 };
