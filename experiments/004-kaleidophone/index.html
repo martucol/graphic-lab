@@ -524,7 +524,7 @@ function setup() {
   calcSize();
   const cnv = createCanvas(canvasW, canvasH, WEBGL);
   cnv.parent('canvas-wrap');
-  pixelDensity(2);
+  pixelDensity(1);
   brush.load();
   frameRate(30);
   noLoop();
@@ -560,7 +560,7 @@ function draw() {
   // With no damping the pattern is periodic — fewer revolutions needed
   // With damping we need more to show the full spiral decay
   const minRevs = Math.max(3.1415, Math.ceil(ratio) * Math.PI);
-  const maxRevs = Math.max(20, ratio * Math.PI);
+  const maxRevs = Math.max(3.1415, ratio * Math.PI);
   const revolutions = damping > 0 ? maxRevs : minRevs;
   const qStep = (Math.PI * 2 * revolutions) / steps;
   const points = [];
